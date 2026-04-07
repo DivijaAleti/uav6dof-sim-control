@@ -14,7 +14,12 @@ class EKF:
         # Nonlinear propagation
         x_pred = step_6dof(self.x, u, self.params, dt, wind_w=wind_w)
         # Simple numerical Jacobian (robust for a starter project)
-        F = self._num_jacobian(lambda xx: step_6dof(xx, u, self.params, dt, wind_w=wind_w), self.x)
+        def fwrap(xx):
+            xx2 = xx.copy()
+            xx2[6:10] = quat_norm(xx2[6:10])
+            return step_6dof(xx2, u, self.params, dt, wind_w=wind_w)
+
+        F = self._num_jacobian(fwrap, self.x)
         self.x = x_pred
         self.x[6:10] = quat_norm(self.x[6:10])
         self.P = F @ self.P @ F.T + self.Q
@@ -39,6 +44,7 @@ class EKF:
         # ignore attitude coupling in H for starter EKF (works ok with frequent GPS)
         y = z - z_hat
         S = H @ self.P @ H.T + self.R_gps
+        S = S + 1e-9 * np.eye(S.shape[0])
         K = self.P @ H.T @ np.linalg.inv(S)
 
         self.x = self.x + K @ y
@@ -53,6 +59,7 @@ class EKF:
         z_hat = np.array([self.x[2]])
         y = np.array([z_meas]) - z_hat
         S = H @ self.P @ H.T + self.R_baro
+        S = S + 1e-9 * np.eye(S.shape[0])
         K = self.P @ H.T @ np.linalg.inv(S)
         self.x = self.x + (K @ y).reshape(-1)
         self.x[6:10] = quat_norm(self.x[6:10])

@@ -82,21 +82,29 @@ class CascadedPID:
         c, s = np.cos(yaw_ref), np.sin(yaw_ref)
         x_c_w = np.array([c, s, 0.0])
         y_b_des_w = np.cross(z_b_des_w, x_c_w)
-        if np.linalg.norm(y_b_des_w) < 1e-6:
+        y_norm = np.linalg.norm(y_b_des_w)
+        if y_norm < 1e-6:
             y_b_des_w = np.array([0.0, 1.0, 0.0])
-        y_b_des_w /= np.linalg.norm(y_b_des_w)
+        else:
+            y_b_des_w = y_b_des_w / y_norm
         x_b_des_w = np.cross(y_b_des_w, z_b_des_w)
-
+        x_b_des_w = x_b_des_w / max(np.linalg.norm(x_b_des_w), 1e-9)
         R_des = np.column_stack([x_b_des_w, y_b_des_w, z_b_des_w])
 
         # Attitude error -> torque (small-angle approx)
         R_err = R_des.T @ R
         # vee( R_err - R_err^T ) / 2
-        e_R = 0.5 * np.array([
-            R_err[2,1] - R_err[1,2],
-            R_err[0,2] - R_err[2,0],
-            R_err[1,0] - R_err[0,1],
+        e_R_mat = 0.5 * (R_des.T @ R - R.T @ R_des)
+        e_R = np.array([
+            e_R_mat[2,1],
+            e_R_mat[0,2],
+            e_R_mat[1,0],
         ])
+        #e_R = 0.5 * np.array([
+        #    R_err[2,1] - R_err[1,2],
+        #    R_err[0,2] - R_err[2,0],
+        #    R_err[1,0] - R_err[0,1],
+        #])
         tau = -self.p_att.step(e_R, dt)
         tau = np.clip(tau, -self.tau_lim, self.tau_lim)
 

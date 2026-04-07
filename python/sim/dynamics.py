@@ -7,7 +7,10 @@ def skew(w):
                      [-wy, wx, 0])
 
 def quat_norm(q):
-    return q / np.linalg.norm(q)
+    n = np.linalg.norm(q)
+    if n < 1e-12:
+        return np.array([1.0, 0.0, 0.0, 0.0])
+    return q / n
 
 def quat_to_R(q):
     # body -> inertial

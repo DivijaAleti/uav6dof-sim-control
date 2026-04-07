@@ -5,7 +5,7 @@ from sim.ekf import EKF
 from sim.controllers import CascadedPID
 
 def main():
-    dt = 0.01
+    dt = 0.005
     T_end = 20.0
     steps = int(T_end/dt)
 
@@ -44,13 +44,13 @@ def main():
     ekf = EKF(x0, P0, Q, R_gps, R_baro, params)
 
     # Reference
-    ref = {"p": np.array([5.0, 0.0, -3.0]), "yaw": 0.0}
+    ref = {"p": np.array([0.0, 0.0, -1.0]), "yaw": 0.0}
 
-    wind_w = np.array([2.0, 0.0, 0.0])
+    wind_w = np.array([0.0, 0.0, 0.0])
 
     for k in range(steps):
         u = ctrl.step(ekf.x, ref, dt, quat_to_R)
-
+        #u = np.array([params["m"]*params["g"], 0.02, 0.0, 0.0])
         # Propagate truth
         from sim.dynamics import step_6dof
         x = step_6dof(x, u, params, dt, wind_w=wind_w)
