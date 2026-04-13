@@ -5,12 +5,26 @@ def skew(w):
     return np.array([0, -wz, wy],
                      [wz, 0, -wx],
                      [-wy, wx, 0])
-
+"""
 def quat_norm(q):
     n = np.linalg.norm(q)
     if n < 1e-12:
         return np.array([1.0, 0.0, 0.0, 0.0])
     return q / n
+"""
+def quat_norm(q, q_prev=None):
+    n = np.linalg.norm(q)
+    if n < 1e-12:
+        if q_prev is not None:
+            return q_prev.copy()
+        return np.array([1.0, 0.0, 0.0, 0.0])
+
+    qn = q / n
+
+    if q_prev is not None and np.dot(qn, q_prev) < 0:
+        qn = -qn
+
+    return qn
 
 def quat_to_R(q):
     # body -> inertial

@@ -1,6 +1,7 @@
 import numpy as np
 from sim.aero import aero_drag_force
 from sim.dynamics import quat_to_R
+from sim.dynamics import step_6dof
 from sim.ekf import EKF
 from sim.controllers import CascadedPID
 
@@ -19,15 +20,66 @@ def main():
     }
 
     # Controller gains (starter)
+    #ctrl_params = {
+    #    "m": params["m"], "g": params["g"],
+    #    "pos_kp":[1.2,1.2,2.0], "pos_ki":[0,0,0.2], "pos_kd":[0.4,0.4,0.6],
+    #    "vel_kp":[2.5,2.5,3.0], "vel_ki":[0,0,0.2], "vel_kd":[0.2,0.2,0.3],
+    #    "att_kp":[6.0,6.0,1.5], "att_ki":[0,0,0], "att_kd":[0.3,0.3,0.1],
+    #    "yaw_kp":1.0,"yaw_ki":0.0,"yaw_kd":0.1,
+    #    "tau_lim":[2.0,2.0,1.0],
+    #    "T_lim":[0.0, 60.0],
+    #}
+    # Using smaller gains
+    #ctrl_params = {
+    #"m": params["m"], "g": params["g"],
+    #"pos_kp":[0.8,0.8,1.2], "pos_ki":[0,0,0.05], "pos_kd":[0.2,0.2,0.3],
+    #"vel_kp":[1.5,1.5,2.0], "vel_ki":[0,0,0.05], "vel_kd":[0.1,0.1,0.15],
+    #"att_kp":[3.0,3.0,1.0], "att_ki":[0,0,0], "att_kd":[0.15,0.15,0.05],
+    #"yaw_kp":0.8,"yaw_ki":0.0,"yaw_kd":0.05,
+    #"tau_lim":[1.0,1.0,0.5],
+    #"T_lim":[0.0, 40.0],
+    #}
+    # Using even smaller gains
+    """
     ctrl_params = {
-        "m": params["m"], "g": params["g"],
-        "pos_kp":[1.2,1.2,2.0], "pos_ki":[0,0,0.2], "pos_kd":[0.4,0.4,0.6],
-        "vel_kp":[2.5,2.5,3.0], "vel_ki":[0,0,0.2], "vel_kd":[0.2,0.2,0.3],
-        "att_kp":[6.0,6.0,1.5], "att_ki":[0,0,0], "att_kd":[0.3,0.3,0.1],
-        "yaw_kp":1.0,"yaw_ki":0.0,"yaw_kd":0.1,
-        "tau_lim":[2.0,2.0,1.0],
-        "T_lim":[0.0, 60.0],
+    "m": params["m"], "g": params["g"],
+    "pos_kp":[0.4, 0.4, 0.8], "pos_ki":[0.0, 0.0, 0.0], "pos_kd":[0.1, 0.1, 0.2],
+    "vel_kp":[0.8, 0.8, 1.2], "vel_ki":[0.0, 0.0, 0.0], "vel_kd":[0.05, 0.05, 0.1],
+    "att_kp":[1.5, 1.5, 0.6], "att_ki":[0.0, 0.0, 0.0], "att_kd":[0.05, 0.05, 0.02],
+    "yaw_kp":0.3, "yaw_ki":0.0, "yaw_kd":0.0,
+    "tau_lim":[0.3, 0.3, 0.15],
+    "T_lim":[0.0, 30.0],
     }
+    """
+    ctrl_params = {
+    "m": params["m"],
+    "g": params["g"],
+
+    "pos_kp": [0.2, 0.2, 0.25],
+    "pos_ki": [0.0, 0.0, 0.0],
+    "pos_kd": [0.05, 0.05, 0.08],
+
+    "vel_kp": [0.4, 0.4, 0.45],
+    "vel_ki": [0.0, 0.0, 0.0],
+    "vel_kd": [0.03, 0.03, 0.04],
+
+    "roll_kp": 0.3,
+    "roll_ki": 0.0,
+    "roll_kd": 0.02,
+
+    "pitch_kp": 0.3,
+    "pitch_ki": 0.0,
+    "pitch_kd": 0.02,
+
+    "yaw_kp": 0.3,
+    "yaw_ki": 0.0,
+    "yaw_kd": 0.02,
+
+    "tau_lim": [0.03, 0.08, 0.04],
+    "T_lim": [0.0, 25.0],
+    "max_tilt": np.deg2rad(5.0),
+    }
+    
     ctrl = CascadedPID(ctrl_params)
 
     # True state
@@ -38,21 +90,22 @@ def main():
     # EKF init
     x0 = x.copy()
     P0 = np.eye(13) * 0.2
-    Q = np.eye(13) * 1e-4
-    R_gps = np.eye(6) * 0.5
-    R_baro = np.eye(1) * 0.3
+    Q = np.eye(13) * 1e-3
+    R_gps = np.eye(6) * 0.2
+    R_baro = np.eye(1) * 0.05
     ekf = EKF(x0, P0, Q, R_gps, R_baro, params)
 
     # Reference
-    ref = {"p": np.array([0.0, 0.0, -1.0]), "yaw": 0.0}
+    ref = {"p": np.array([5.0, 0.0, -3.0]), "yaw": 0.0}
 
-    wind_w = np.array([0.0, 0.0, 0.0])
+    wind_w = np.array([2.0, 0.0, 0.0])
 
     for k in range(steps):
-        u = ctrl.step(ekf.x, ref, dt, quat_to_R)
-        #u = np.array([params["m"]*params["g"], 0.02, 0.0, 0.0])
+        x_ctrl = x.copy()
+        x_ctrl[0:6] = ekf.x[0:6] #use estimated position only
+        u = ctrl.step(x_ctrl, ref, dt, quat_to_R)
+        #u = np.array([params["m"]*(params["g"]+0.5), 0.0, 0.0, 0.0])
         # Propagate truth
-        from sim.dynamics import step_6dof
         x = step_6dof(x, u, params, dt, wind_w=wind_w)
 
         # Fake sensors (simple)
