@@ -19,38 +19,7 @@ def main():
         "aero_force": aero_drag_force,
     }
 
-    # Controller gains (starter)
-    #ctrl_params = {
-    #    "m": params["m"], "g": params["g"],
-    #    "pos_kp":[1.2,1.2,2.0], "pos_ki":[0,0,0.2], "pos_kd":[0.4,0.4,0.6],
-    #    "vel_kp":[2.5,2.5,3.0], "vel_ki":[0,0,0.2], "vel_kd":[0.2,0.2,0.3],
-    #    "att_kp":[6.0,6.0,1.5], "att_ki":[0,0,0], "att_kd":[0.3,0.3,0.1],
-    #    "yaw_kp":1.0,"yaw_ki":0.0,"yaw_kd":0.1,
-    #    "tau_lim":[2.0,2.0,1.0],
-    #    "T_lim":[0.0, 60.0],
-    #}
-    # Using smaller gains
-    #ctrl_params = {
-    #"m": params["m"], "g": params["g"],
-    #"pos_kp":[0.8,0.8,1.2], "pos_ki":[0,0,0.05], "pos_kd":[0.2,0.2,0.3],
-    #"vel_kp":[1.5,1.5,2.0], "vel_ki":[0,0,0.05], "vel_kd":[0.1,0.1,0.15],
-    #"att_kp":[3.0,3.0,1.0], "att_ki":[0,0,0], "att_kd":[0.15,0.15,0.05],
-    #"yaw_kp":0.8,"yaw_ki":0.0,"yaw_kd":0.05,
-    #"tau_lim":[1.0,1.0,0.5],
-    #"T_lim":[0.0, 40.0],
-    #}
-    # Using even smaller gains
-    """
-    ctrl_params = {
-    "m": params["m"], "g": params["g"],
-    "pos_kp":[0.4, 0.4, 0.8], "pos_ki":[0.0, 0.0, 0.0], "pos_kd":[0.1, 0.1, 0.2],
-    "vel_kp":[0.8, 0.8, 1.2], "vel_ki":[0.0, 0.0, 0.0], "vel_kd":[0.05, 0.05, 0.1],
-    "att_kp":[1.5, 1.5, 0.6], "att_ki":[0.0, 0.0, 0.0], "att_kd":[0.05, 0.05, 0.02],
-    "yaw_kp":0.3, "yaw_ki":0.0, "yaw_kd":0.0,
-    "tau_lim":[0.3, 0.3, 0.15],
-    "T_lim":[0.0, 30.0],
-    }
-    """
+    # Controller gains
     ctrl_params = {
     "m": params["m"],
     "g": params["g"],
@@ -102,13 +71,12 @@ def main():
 
     for k in range(steps):
         x_ctrl = x.copy()
-        x_ctrl[0:6] = ekf.x[0:6] #use estimated position only
+        x_ctrl[0:6] = ekf.x[0:6] #use estimated position and velocity only
         u = ctrl.step(x_ctrl, ref, dt, quat_to_R)
-        #u = np.array([params["m"]*(params["g"]+0.5), 0.0, 0.0, 0.0])
         # Propagate truth
         x = step_6dof(x, u, params, dt, wind_w=wind_w)
 
-        # Fake sensors (simple)
+        # Fake sensors
         gps_period = int(0.1/dt)
         baro_period = int(0.05/dt)
 

@@ -13,7 +13,7 @@ class EKF:
     def predict(self, u, dt, wind_w):
         # Nonlinear propagation
         x_pred = step_6dof(self.x, u, self.params, dt, wind_w=wind_w)
-        # Simple numerical Jacobian (robust for a starter project)
+        # Simple numerical Jacobian
         def fwrap(xx):
             xx2 = xx.copy()
             xx2[6:10] = quat_norm(xx2[6:10])

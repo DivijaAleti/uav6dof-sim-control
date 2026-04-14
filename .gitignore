@@ -4,12 +4,6 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 
-# C/C++
-*.o
-*.out
-*.exe
-build/
-
 # macOS
 .DS_Store
 
