@@ -1,13 +1,13 @@
 # UAV 6-DOF Simulation and Control
 
-## Overview:
+## Overview
 
 This project implements a full 6-degree-of-freedom (6-DOF) simulation and control framework for a UAV. It models the nonlinear dynamics of the vehicle and applies feedback control to track a desired position in 3D space.
 
 
 The goal of this project is to build an understanding of **rigid body dynamics**, **state estimation**, and **control**, similar to what is used in real-world autonomy systems.
 
-## Key Features:
+## Key Features
 - Full nonlinear 6-DOF rigid body dynamics
 - Rotation handled using quaternions
 - Modular simulation structure (dynamics, control, estimation)
@@ -15,7 +15,7 @@ The goal of this project is to build an understanding of **rigid body dynamics**
 - Simulation under disturbances (e.g. wind)
 - Estimated state vs. true state comparison
 
-## System Architecture:
+## System Architecture
 The simulation is structures into key components:
 - Dynamics Model
     - Translational and rotational equations of motion
@@ -34,7 +34,7 @@ The simulation is structures into key components:
     - Time integration of dynamics
     - Controller + estimator update at each step
 
-## Project Structure:
+## Project Structure
 ```
 uav6dof-sim-control/
 |-- python/        
@@ -42,7 +42,7 @@ uav6dof-sim-control/
 |-- README.md
 ```
 
-## How to Run:
+## How to Run
 1. Clone the repository
 ```
 git clone https://github.com/DivijaAleti/uav6dof-sim-control.git
@@ -57,7 +57,7 @@ pip install numpy
 python python/run_sim.py
 ```
 
-## Example Results:
+## Example Results
 Typical output:
 ```
 Final true position: [ 5.23556097  0.01588853 -3.116533  ]
@@ -69,13 +69,13 @@ The controller is able to drive the UAV close to the reference:
 Reference: [5.0, 0.0, -3.0]
 ```
 
-## Key Learnings:
+## Key Learnings
 - Importance of frame transformations (world <-> body)
 - Sensitivity of control to state estimation errors
 - Effect of disturbances on tracking performance
 - Effect of controller gains on performance
 
-## Future Work:
+## Future Work
 - Add realistic sensor models (IMU, GPS)
 - Add EKF-based sensor fusion
 - Use RK4 integration for simulation of nonlinear dynamics 
@@ -83,6 +83,6 @@ Reference: [5.0, 0.0, -3.0]
 - Run Monte-Carlo simulations
 - Port full pipeline to C++ for real-time performance
 
-## Author:
+## Author
 Divija Aleti<br>
 Aerospace Engineer | Controls | Autonomy
