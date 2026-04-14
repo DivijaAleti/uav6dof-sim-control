@@ -44,20 +44,30 @@ uav6dof-sim-control/
 
 ## How to Run:
 1. Clone the repository
-    git clone https://github.com/DivijaAleti/uav6dof-sim-control.git
-    cd uav6dof-sim-control
+```
+git clone https://github.com/DivijaAleti/uav6dof-sim-control.git
+cd uav6dof-sim-control
+```
 2. Install dependencies
-`pip install numpy`
+```
+pip install numpy
+```
 3. Run simulation
-`python python/run_sim.py`
+```
+python python/run_sim.py
+```
 
 ## Example Results:
 Typical output:
-    Final true position: [ 5.23556097  0.01588853 -3.116533  ]
-    Final est position : [ 5.1235101  -0.19631099 -3.07746272]
+```
+Final true position: [ 5.23556097  0.01588853 -3.116533  ]
+Final est position : [ 5.1235101  -0.19631099 -3.07746272]
+```
 
 The controller is able to drive the UAV close to the reference:
-    Reference: [5.0, 0.0, -3.0]
+```
+Reference: [5.0, 0.0, -3.0]
+```
 
 ## Key Learnings:
 - Importance of frame transformations (world <-> body)
@@ -74,5 +84,5 @@ The controller is able to drive the UAV close to the reference:
 - Port full pipeline to C++ for real-time performance
 
 ## Author:
-Divija Aleti. 
+Divija Aleti<br>
 Aerospace Engineer | Controls | Autonomy
