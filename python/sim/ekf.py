@@ -1,5 +1,21 @@
 import numpy as np
-from .dynamics import quat_norm, quat_to_R, step_6dof
+from .dynamics import quat_norm, quat_to_R
+
+def quat_derivative(q, w_b):
+    """
+    Quaternion kinematics:
+      q_dot = 0.5 * Omega(w_b) * q
+    for q = [qw, qx, qy, qz]
+    """
+    wx, wy, wz = w_b
+
+    Omega = np.array([
+        [0.0, -wx, -wy, -wz],
+        [wx,  0.0,  wz, -wy],
+        [wy, -wz,  0.0,  wx],
+        [wz,  wy, -wx,  0.0],
+    ])
+    return 0.5 * Omega @ q
 
 class EKF:
     def __init__(self, x0, P0, Q, R_gps, R_baro, params):
@@ -9,7 +25,7 @@ class EKF:
         self.R_gps = R_gps
         self.R_baro = R_baro
         self.params = params
-
+    '''
     def predict(self, u, dt, wind_w):
         # Nonlinear propagation
         x_pred = step_6dof(self.x, u, self.params, dt, wind_w=wind_w)
@@ -20,6 +36,60 @@ class EKF:
             return step_6dof(xx2, u, self.params, dt, wind_w=wind_w)
 
         F = self._num_jacobian(fwrap, self.x)
+        self.x = x_pred
+        self.x[6:10] = quat_norm(self.x[6:10])
+        self.P = F @ self.P @ F.T + self.Q
+    '''
+    def predict(self, accel_meas_b, gyro_meas_b, dt):
+        """
+        IMU-driven EKF prediction step.
+
+        State:
+        x = [p_w(3), v_b(3), q(4), w_b(3)]
+
+        IMU inputs:
+        accel_meas_b : specific force in body frame
+        gyro_meas_b  : angular velocity in body frame
+        """
+        g = self.params.get("g", 9.81)
+
+        def f_imu(xx):
+            p = xx[0:3]
+            v_b = xx[3:6]
+            q = quat_norm(xx[6:10])
+            w_b = gyro_meas_b.copy()   # gyro drives angular-rate state directly
+
+            R_bw = quat_to_R(q)        # body -> world
+            g_w = np.array([0.0, 0.0, -g])
+            g_b = R_bw.T @ g_w
+
+            # accelerometer measures specific force:
+            # f_b = v_dot_b + w x v - g_b  =>  v_dot_b = f_b + g_b - w x v
+            a_b = accel_meas_b + g_b
+
+            # position kinematics in world frame
+            p_dot = R_bw @ v_b
+
+            # body-frame translational dynamics (simplified)
+            # v_dot_b = a_b - w x v
+            v_dot_b = a_b - np.cross(w_b, v_b)
+
+            # quaternion kinematics
+            q_dot = quat_derivative(q, w_b)
+
+            # angular-rate state just tracks gyro measurement
+            w_dot_b = np.zeros(3)
+
+            x_dot = np.hstack([p_dot, v_dot_b, q_dot, w_dot_b])
+            x_next = xx + dt * x_dot
+            x_next[6:10] = quat_norm(x_next[6:10])
+            x_next[10:13] = gyro_meas_b.copy()
+
+            return x_next
+
+        x_pred = f_imu(self.x)
+        F = self._num_jacobian(f_imu, self.x)
+
         self.x = x_pred
         self.x[6:10] = quat_norm(self.x[6:10])
         self.P = F @ self.P @ F.T + self.Q

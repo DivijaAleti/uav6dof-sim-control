@@ -16,7 +16,7 @@ The goal of this project is to build an understanding of **rigid body dynamics**
 - Estimated state vs. true state comparison
 
 ## System Architecture
-The simulation is structures into key components:
+The simulation is structured into key components:
 - Dynamics Model
     - Translational and rotational equations of motion
     - Quaternion kinematics from infinitesimal rotation

@@ -4,6 +4,7 @@ from sim.dynamics import quat_to_R
 from sim.dynamics import step_6dof
 from sim.ekf import EKF
 from sim.controllers import CascadedPID
+from sim.sensors import GPSSensor, BarometerSensor, IMUSensor
 
 def main():
     dt = 0.005
@@ -64,24 +65,57 @@ def main():
     R_baro = np.eye(1) * 0.05
     ekf = EKF(x0, P0, Q, R_gps, R_baro, params)
 
+    gps = GPSSensor(pos_sigma=0.3,vel_sigma=0.3,rate_hz=10.0)
+    baro = BarometerSensor(z_sigma=0.2,rate_hz=20.0)
+    imu = IMUSensor(
+        accel_sigma=0.03,
+        gyro_sigma=0.003,
+        accel_bias=np.zeros(3), #np.array([0.02,-0.01,0.03]),
+        gyro_bias=np.zeros(3), #np.array([0.002,-0.001,0.0015]),
+        rate_hz=1.0/dt,
+        g=params["g"]
+    )
+
     # Reference
     ref = {"p": np.array([5.0, 0.0, -3.0]), "yaw": 0.0}
 
     wind_w = np.array([2.0, 0.0, 0.0])
 
     for k in range(steps):
+        t = k * dt
+
         x_ctrl = x.copy()
         x_ctrl[0:6] = ekf.x[0:6] #use estimated position and velocity only
         u = ctrl.step(x_ctrl, ref, dt, quat_to_R)
+
+        # Save previous truth state for IMU finite-difference acceleration
+        x_prev = x.copy()
+
         # Propagate truth
         x = step_6dof(x, u, params, dt, wind_w=wind_w)
 
         # Fake sensors
-        gps_period = int(0.1/dt)
-        baro_period = int(0.05/dt)
+        #gps_period = int(0.1/dt)
+        #baro_period = int(0.05/dt)
 
-        ekf.predict(u, dt, wind_w)
+        # ekf.predict(u, dt, wind_w)
 
+        # IMU prediction step
+        if imu.ready(t):
+            accel_meas_b, gyro_meas_b = imu.measure(x_prev,x,dt,t)
+            ekf.predict(accel_meas_b,gyro_meas_b,dt)
+
+        # GPS update when a new GPS measurement is available
+        if gps.ready(t):
+            p_meas, v_meas = gps.measure(x,t)
+            ekf.update_gps(p_meas, v_meas)
+
+        # Barometer update when a new barometer measurement is available
+        if baro.ready(t):
+            z_meas = baro.measure(x,t)
+            ekf.update_baro(z_meas)
+
+        '''
         if k % gps_period == 0:
             p_meas = x[0:3] + np.random.randn(3)*0.3
             # world vel from body vel:
@@ -93,6 +127,7 @@ def main():
         if k % baro_period == 0:
             z_meas = x[2] + np.random.randn()*0.2
             ekf.update_baro(z_meas)
+        '''
 
     print("Final true position:", x[0:3])
     print("Final est position :", ekf.x[0:3])
