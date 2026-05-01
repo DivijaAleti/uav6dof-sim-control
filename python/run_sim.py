@@ -5,11 +5,33 @@ from sim.dynamics import step_6dof
 from sim.ekf import EKF
 from sim.controllers import CascadedPID
 from sim.sensors import GPSSensor, BarometerSensor, IMUSensor
+from sim.plots import plot_trajectory_3d, plot_position_tracking, plot_position_error, plot_control_inputs, show_all
 
 def main():
     dt = 0.005
     T_end = 20.0
     steps = int(T_end/dt)
+
+    # Time history
+    t_hist = np.zeros(steps)
+
+    # True state history
+    p_true_hist = np.zeros((steps, 3))
+    v_true_hist = np.zeros((steps, 3))
+    q_true_hist = np.zeros((steps, 4))
+    w_true_hist = np.zeros((steps, 3))
+
+    # Estimated state history
+    p_est_hist = np.zeros((steps, 3))
+    v_est_hist = np.zeros((steps, 3))
+    q_est_hist = np.zeros((steps, 4))
+    w_est_hist = np.zeros((steps, 3))
+
+    # Reference history
+    p_ref_hist = np.zeros((steps, 3))
+
+    # Control history
+    u_hist = np.zeros((steps, 4))
 
     params = {
         "m": 2.0,
@@ -115,6 +137,24 @@ def main():
             z_meas = baro.measure(x,t)
             ekf.update_baro(z_meas)
 
+        # Log histories
+        t_hist[k] = t
+
+        p_true_hist[k, :] = x[0:3]
+        v_true_hist[k, :] = x[3:6]
+        q_true_hist[k, :] = x[6:10]
+        w_true_hist[k, :] = x[10:13]
+
+        p_est_hist[k, :] = ekf.x[0:3]
+        v_est_hist[k, :] = ekf.x[3:6]
+        q_est_hist[k, :] = ekf.x[6:10]
+        w_est_hist[k, :] = ekf.x[10:13]
+
+        p_ref_hist[k, :] = ref["p"]
+
+        u_hist[k, :] = u
+
+
         '''
         if k % gps_period == 0:
             p_meas = x[0:3] + np.random.randn(3)*0.3
@@ -129,8 +169,22 @@ def main():
             ekf.update_baro(z_meas)
         '''
 
+    pos_err = p_est_hist - p_true_hist
+    vel_err = v_est_hist - v_true_hist
+
+    pos_err_norm = np.linalg.norm(pos_err, axis=1)
+
     print("Final true position:", x[0:3])
     print("Final est position :", ekf.x[0:3])
+    print("Final position error norm:", pos_err_norm[-1])
+
+    # Plot using external module
+    fig1 = plot_trajectory_3d(p_true_hist, p_est_hist, p_ref_hist)
+    fig2 = plot_position_tracking(t_hist, p_true_hist, p_est_hist, p_ref_hist)
+    fig3 = plot_position_error(t_hist, p_true_hist, p_est_hist)
+    fig4 = plot_control_inputs(t_hist, u_hist)
+
+    show_all()
 
 if __name__ == "__main__":
     main()
