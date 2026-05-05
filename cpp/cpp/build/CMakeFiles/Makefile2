@@ -65,11 +65,13 @@ CMAKE_BINARY_DIR = /Users/divijaaleti/dev/uav6dof-sim-control/cpp/cpp/build
 # The main recursive "all" target.
 all: CMakeFiles/controller.dir/all
 all: CMakeFiles/test_controller.dir/all
+all: CMakeFiles/uav_controller_cpp.dir/all
 .PHONY : all
 
 # The main recursive "codegen" target.
 codegen: CMakeFiles/controller.dir/codegen
 codegen: CMakeFiles/test_controller.dir/codegen
+codegen: CMakeFiles/uav_controller_cpp.dir/codegen
 .PHONY : codegen
 
 # The main recursive "preinstall" target.
@@ -79,6 +81,7 @@ preinstall:
 # The main recursive "clean" target.
 clean: CMakeFiles/controller.dir/clean
 clean: CMakeFiles/test_controller.dir/clean
+clean: CMakeFiles/uav_controller_cpp.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -144,6 +147,38 @@ CMakeFiles/test_controller.dir/codegen:
 CMakeFiles/test_controller.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_controller.dir/build.make CMakeFiles/test_controller.dir/clean
 .PHONY : CMakeFiles/test_controller.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/uav_controller_cpp.dir
+
+# All Build rule for target.
+CMakeFiles/uav_controller_cpp.dir/all: CMakeFiles/controller.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uav_controller_cpp.dir/build.make CMakeFiles/uav_controller_cpp.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uav_controller_cpp.dir/build.make CMakeFiles/uav_controller_cpp.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/divijaaleti/dev/uav6dof-sim-control/cpp/cpp/build/CMakeFiles --progress-num=5,6 "Built target uav_controller_cpp"
+.PHONY : CMakeFiles/uav_controller_cpp.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/uav_controller_cpp.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/divijaaleti/dev/uav6dof-sim-control/cpp/cpp/build/CMakeFiles 4
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/uav_controller_cpp.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/divijaaleti/dev/uav6dof-sim-control/cpp/cpp/build/CMakeFiles 0
+.PHONY : CMakeFiles/uav_controller_cpp.dir/rule
+
+# Convenience name for target.
+uav_controller_cpp: CMakeFiles/uav_controller_cpp.dir/rule
+.PHONY : uav_controller_cpp
+
+# codegen rule for target.
+CMakeFiles/uav_controller_cpp.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uav_controller_cpp.dir/build.make CMakeFiles/uav_controller_cpp.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/divijaaleti/dev/uav6dof-sim-control/cpp/cpp/build/CMakeFiles --progress-num=5,6 "Finished codegen for target uav_controller_cpp"
+.PHONY : CMakeFiles/uav_controller_cpp.dir/codegen
+
+# clean rule for target.
+CMakeFiles/uav_controller_cpp.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uav_controller_cpp.dir/build.make CMakeFiles/uav_controller_cpp.dir/clean
+.PHONY : CMakeFiles/uav_controller_cpp.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

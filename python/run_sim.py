@@ -1,3 +1,12 @@
+import sys
+from pathlib import Path
+
+repo_root = Path(__file__).resolve().parents[1]
+cpp_build_dir = repo_root / "cpp" / "cpp"/ "build"
+sys.path.append(str(cpp_build_dir))
+
+import uav_controller_cpp
+
 import numpy as np
 from sim.aero import aero_drag_force
 from sim.dynamics import quat_to_R
@@ -6,6 +15,44 @@ from sim.ekf import EKF
 from sim.controllers import CascadedPID
 from sim.sensors import GPSSensor, BarometerSensor, IMUSensor
 from sim.plots import plot_trajectory_3d, plot_position_tracking, plot_position_error, plot_control_inputs, show_all
+
+class CppControllerAdapter:
+    def __init__(self, params):
+        cpp_params = uav_controller_cpp.ControllerParams()
+
+        cpp_params.kp_pos = [1.0, 1.0, 2.0]
+        cpp_params.kd_pos = [0.2, 0.2, 0.4]
+
+        cpp_params.kp_att = [0.1, 0.1, 0.05]
+        cpp_params.kd_att = [0.01, 0.01, 0.01]
+
+        cpp_params.mass = params["m"]
+        cpp_params.gravity = params["g"]
+        cpp_params.max_thrust = params["max_thrust"]
+        cpp_params.max_torque = list(params["max_torque"])
+
+        self.controller = uav_controller_cpp.CascadedPIDController(cpp_params)
+
+    def step(self, x, ref, dt, quat_to_R_func=None):
+        cpp_state = uav_controller_cpp.State()
+
+        cpp_state.position = x[0:3].tolist()
+        cpp_state.velocity = x[3:6].tolist()
+        cpp_state.quaternion = x[6:10].tolist()
+        cpp_state.omega = x[10:13].tolist()
+
+        cpp_ref = uav_controller_cpp.Reference()
+        cpp_ref.position = ref["p"].tolist()
+        cpp_ref.yaw = float(ref["yaw"])
+
+        cpp_u = self.controller.step(cpp_state, cpp_ref, dt)
+
+        return np.array([
+            cpp_u.thrust,
+            cpp_u.torque[0],
+            cpp_u.torque[1],
+            cpp_u.torque[2],
+        ])
 
 def main():
     dt = 0.005
@@ -40,6 +87,8 @@ def main():
         "rho": 1.225,
         "CdA": np.array([0.06, 0.06, 0.10]),
         "aero_force": aero_drag_force,
+        "max_thrust": 25.0,
+        "max_torque": np.array([0.03, 0.08, 0.04]),
     }
 
     # Controller gains
@@ -72,7 +121,11 @@ def main():
     "max_tilt": np.deg2rad(5.0),
     }
     
-    ctrl = CascadedPID(ctrl_params)
+    # Using Python controller
+    #ctrl = CascadedPID(ctrl_params)
+
+    # Using C++ controller
+    ctrl = CppControllerAdapter(params)
 
     # True state
     x = np.zeros(13)

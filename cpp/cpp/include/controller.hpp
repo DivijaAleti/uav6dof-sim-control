@@ -3,32 +3,32 @@
 #include <array>
 
 struct ControllerParams {
-    double kp_pos[3];
-    double kd_pos[3];
-    double kp_att[3];
-    double kd_att[3];
+    std::array<double, 3> kp_pos;
+    std::array<double, 3> kd_pos;
+    std::array<double, 3> kp_att;
+    std::array<double, 3> kd_att;
 
     double mass;
     double gravity;
     double max_thrust;
-    double max_torque[3];
+    std::array<double, 3> max_torque;
 };
 
 struct State {
-    double position[3];
-    double velocity[3];
-    double quaternion[4];
-    double omega[3];
+    std::array<double, 3> position;
+    std::array<double, 3> velocity;
+    std::array<double, 4> quaternion;
+    std::array<double, 3> omega;
 };
 
 struct Reference {
-    double position[3];
+    std::array<double, 3> position;
     double yaw;
 };
 
 struct ControlOutput {
     double thrust;
-    double torque[3];
+    std::array<double, 3> torque;
 };
 
 class CascadedPIDController {
@@ -44,8 +44,8 @@ public:
 private:
     ControllerParams params_;
 
-    double pos_integral_[3];
-    double prev_pos_error_[3];
+    std::array<double, 3> pos_integral_;
+    std::array<double, 3> prev_pos_error_;
 
     double saturate(double value, double limit) const;
 };

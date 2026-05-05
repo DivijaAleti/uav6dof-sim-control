@@ -1,15 +1,13 @@
 #include "controller.hpp"
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 
 CascadedPIDController::CascadedPIDController(
     const ControllerParams& params
 ) : params_(params) {
-    for (int i = 0; i < 3; ++i) {
-        pos_integral_[i] = 0.0;
-        prev_pos_error_[i] = 0.0;
-    }
+    pos_integral_.fill(0.0);
+    prev_pos_error_.fill(0.0);
 }
 
 double CascadedPIDController::saturate(
@@ -25,9 +23,12 @@ ControlOutput CascadedPIDController::step(
     double dt
 ) {
     ControlOutput output{};
+    output.thrust = 0.0;
+    output.torque.fill(0.0);
 
-    double pos_error[3];
-    double vel_cmd[3];
+    std::array<double, 3> pos_error{};
+    std::array<double, 3> vel_cmd{};
+    std::array<double, 3> vel_error{};
 
     for (int i = 0; i < 3; ++i) {
         pos_error[i] = ref.position[i] - state.position[i];
@@ -44,7 +45,6 @@ ControlOutput CascadedPIDController::step(
         prev_pos_error_[i] = pos_error[i];
     }
 
-    double vel_error[3];
     for (int i = 0; i < 3; ++i) {
         vel_error[i] = vel_cmd[i] - state.velocity[i];
     }

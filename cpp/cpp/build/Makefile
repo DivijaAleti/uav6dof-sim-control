@@ -142,6 +142,43 @@ test_controller/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_controller.dir/build.make CMakeFiles/test_controller.dir/build
 .PHONY : test_controller/fast
 
+#=============================================================================
+# Target rules for targets named uav_controller_cpp
+
+# Build rule for target.
+uav_controller_cpp: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 uav_controller_cpp
+.PHONY : uav_controller_cpp
+
+# fast build rule for target.
+uav_controller_cpp/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uav_controller_cpp.dir/build.make CMakeFiles/uav_controller_cpp.dir/build
+.PHONY : uav_controller_cpp/fast
+
+bindings/controller_bindings.o: bindings/controller_bindings.cpp.o
+.PHONY : bindings/controller_bindings.o
+
+# target to build an object file
+bindings/controller_bindings.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uav_controller_cpp.dir/build.make CMakeFiles/uav_controller_cpp.dir/bindings/controller_bindings.cpp.o
+.PHONY : bindings/controller_bindings.cpp.o
+
+bindings/controller_bindings.i: bindings/controller_bindings.cpp.i
+.PHONY : bindings/controller_bindings.i
+
+# target to preprocess a source file
+bindings/controller_bindings.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uav_controller_cpp.dir/build.make CMakeFiles/uav_controller_cpp.dir/bindings/controller_bindings.cpp.i
+.PHONY : bindings/controller_bindings.cpp.i
+
+bindings/controller_bindings.s: bindings/controller_bindings.cpp.s
+.PHONY : bindings/controller_bindings.s
+
+# target to generate assembly for a file
+bindings/controller_bindings.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uav_controller_cpp.dir/build.make CMakeFiles/uav_controller_cpp.dir/bindings/controller_bindings.cpp.s
+.PHONY : bindings/controller_bindings.cpp.s
+
 src/controller.o: src/controller.cpp.o
 .PHONY : src/controller.o
 
@@ -200,6 +237,10 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... controller"
 	@echo "... test_controller"
+	@echo "... uav_controller_cpp"
+	@echo "... bindings/controller_bindings.o"
+	@echo "... bindings/controller_bindings.i"
+	@echo "... bindings/controller_bindings.s"
 	@echo "... src/controller.o"
 	@echo "... src/controller.i"
 	@echo "... src/controller.s"

@@ -1,4 +1,5 @@
 /Users/divijaaleti/dev/uav6dof-sim-control/cpp/cpp/build/CMakeFiles/controller.dir
 /Users/divijaaleti/dev/uav6dof-sim-control/cpp/cpp/build/CMakeFiles/test_controller.dir
+/Users/divijaaleti/dev/uav6dof-sim-control/cpp/cpp/build/CMakeFiles/uav_controller_cpp.dir
 /Users/divijaaleti/dev/uav6dof-sim-control/cpp/cpp/build/CMakeFiles/edit_cache.dir
 /Users/divijaaleti/dev/uav6dof-sim-control/cpp/cpp/build/CMakeFiles/rebuild_cache.dir
