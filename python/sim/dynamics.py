@@ -77,7 +77,7 @@ def step_6dof(x,u,params,dt,wind_w=np.zeros(3)):
     # Euler step (swap for RK4 later if needed)
     p2 = p + dt * p_dot
     v2 = v + dt * v_dot
-    q2 = quat_norm(q + dt * q_dot)
+    q2 = quat_norm(q + dt * q_dot,q)
     w2 = w + dt * w_dot
 
     return np.hstack([p2, v2, q2, w2])

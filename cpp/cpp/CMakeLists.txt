@@ -18,7 +18,7 @@ add_executable(test_controller
 )
 
 target_link_libraries(test_controller
-    controller
+    PRIVATE controller
 )
 
 pybind11_add_module(uav_controller_cpp

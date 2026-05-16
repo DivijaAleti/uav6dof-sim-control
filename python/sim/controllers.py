@@ -1,4 +1,5 @@
 import numpy as np
+from .dynamics import quat_norm
 
 def sat(x, lo, hi):
     return np.minimum(np.maximum(x,lo),hi)
@@ -52,8 +53,8 @@ class CascadedPID:
 
         self.m = params["m"]
         self.g = params.get("g", 9.80665)
-        self.tau_lim = np.array(params.get("tau_lim", [0.03, 0.08, 0.04]), dtype=float)
-        self.T_lim = np.array(params.get("T_lim", [0.0, 30.0]), dtype=float)
+        self.tau_lim = params.get("tau_lim", np.array([0.06, 0.10, 0.05],dtype=float))
+        self.T_lim = params.get("T_lim", np.array([0.0, 25.0],dtype=float))
 
         self.max_tilt = params.get("max_tilt", np.deg2rad(5.0))
         self.kz_p = params.get("kz_p", 1.0)
@@ -68,6 +69,7 @@ class CascadedPID:
         p = x_hat[0:3]
         v_b = x_hat[3:6]
         q = x_hat[6:10]
+        q = quat_norm(q)
         R = R_from_quat(q)
         if self.p_prev is None:
             v_w = np.zeros(3)

@@ -20,16 +20,38 @@ class CppControllerAdapter:
     def __init__(self, params):
         cpp_params = uav_controller_cpp.ControllerParams()
 
-        cpp_params.kp_pos = [1.0, 1.0, 2.0]
-        cpp_params.kd_pos = [0.2, 0.2, 0.4]
+        cpp_params.pos_kp = [0.22, 0.40, 0.45]
+        cpp_params.pos_ki = [0.03, 0.0, 0.0]
+        cpp_params.pos_kd = [0.25, 0.14, 0.12]
 
-        cpp_params.kp_att = [0.1, 0.1, 0.05]
-        cpp_params.kd_att = [0.01, 0.01, 0.01]
+        cpp_params.vel_kp = [0.5, 0.75, 0.75]
+        cpp_params.vel_ki = [0.0, 0.0, 0.0]
+        cpp_params.vel_kd = [0.14, 0.08, 0.06]
+
+        cpp_params.roll_kp = 0.3
+        cpp_params.roll_ki = 0.0
+        cpp_params.roll_kd = 0.02
+
+        cpp_params.pitch_kp = 0.3
+        cpp_params.pitch_ki = 0.0
+        cpp_params.pitch_kd = 0.02
+
+        cpp_params.yaw_kp = 0.3
+        cpp_params.yaw_ki = 0.0
+        cpp_params.yaw_kd = 0.02
 
         cpp_params.mass = params["m"]
         cpp_params.gravity = params["g"]
-        cpp_params.max_thrust = params["max_thrust"]
+        cpp_params.max_thrust = np.array([0.0, params["max_thrust"]])
         cpp_params.max_torque = list(params["max_torque"])
+        cpp_params.max_tilt = np.deg2rad(10.0)
+
+        cpp_params.kz_p = 1.0
+        cpp_params.kz_d = 1.5
+        cpp_params.kx_p = 0.1
+        cpp_params.kx_d = 0.2
+        cpp_params.ky_p = 0.15
+        cpp_params.ky_d = 0.2
 
         self.controller = uav_controller_cpp.CascadedPIDController(cpp_params)
 
@@ -37,12 +59,13 @@ class CppControllerAdapter:
         cpp_state = uav_controller_cpp.State()
 
         cpp_state.position = x[0:3].tolist()
-        cpp_state.velocity = x[3:6].tolist()
+        cpp_state.velocity_body = x[3:6].tolist()
         cpp_state.quaternion = x[6:10].tolist()
         cpp_state.omega = x[10:13].tolist()
 
         cpp_ref = uav_controller_cpp.Reference()
         cpp_ref.position = ref["p"].tolist()
+        cpp_ref.velocity = ref["v"].tolist()
         cpp_ref.yaw = float(ref["yaw"])
 
         cpp_u = self.controller.step(cpp_state, cpp_ref, dt)
@@ -53,6 +76,28 @@ class CppControllerAdapter:
             cpp_u.torque[1],
             cpp_u.torque[2],
         ])
+
+def rate_limit(u_cmd, u_prev, dt, thrust_rate_lim=80.0, torque_rate_lim=np.array([1.0, 1.0, 0.5])):
+    u_limited = u_prev.copy()
+
+    # Thrust rate limit
+    dT = np.clip(
+        u_cmd[0] - u_prev[0],
+        -thrust_rate_lim * dt,
+        thrust_rate_lim * dt,
+    )
+    u_limited[0] = u_prev[0] + dT
+
+    # Torque rate limits
+    for i in range(3):
+        d_tau = np.clip(
+            u_cmd[i + 1] - u_prev[i + 1],
+            -torque_rate_lim[i] * dt,
+            torque_rate_lim[i] * dt,
+        )
+        u_limited[i + 1] = u_prev[i + 1] + d_tau
+
+    return u_limited
 
 def main():
     dt = 0.005
@@ -88,7 +133,7 @@ def main():
         "CdA": np.array([0.06, 0.06, 0.10]),
         "aero_force": aero_drag_force,
         "max_thrust": 25.0,
-        "max_torque": np.array([0.03, 0.08, 0.04]),
+        "max_torque": np.array([0.06, 0.10, 0.05]),
     }
 
     # Controller gains
@@ -96,13 +141,13 @@ def main():
     "m": params["m"],
     "g": params["g"],
 
-    "pos_kp": [0.2, 0.2, 0.25],
-    "pos_ki": [0.0, 0.0, 0.0],
-    "pos_kd": [0.05, 0.05, 0.08],
+    "pos_kp": np.array([0.22, 0.40, 0.45]),
+    "pos_ki": np.array([0.03, 0.0, 0.0]),
+    "pos_kd": np.array([0.25, 0.14, 0.12]),
 
-    "vel_kp": [0.4, 0.4, 0.45],
-    "vel_ki": [0.0, 0.0, 0.0],
-    "vel_kd": [0.03, 0.03, 0.04],
+    "vel_kp": np.array([0.50, 0.75, 0.75]),
+    "vel_ki": np.array([0.0, 0.0, 0.0]),
+    "vel_kd": np.array([0.14, 0.08, 0.06]),
 
     "roll_kp": 0.3,
     "roll_ki": 0.0,
@@ -116,9 +161,9 @@ def main():
     "yaw_ki": 0.0,
     "yaw_kd": 0.02,
 
-    "tau_lim": [0.03, 0.08, 0.04],
-    "T_lim": [0.0, 25.0],
-    "max_tilt": np.deg2rad(5.0),
+    "tau_lim": np.array([0.06, 0.10, 0.05]),
+    "T_lim": np.array([0.0, 25.0]),
+    "max_tilt": np.deg2rad(10.0),
     }
     
     # Using Python controller
@@ -136,11 +181,15 @@ def main():
     x0 = x.copy()
     P0 = np.eye(13) * 0.2
     Q = np.eye(13) * 1e-3
-    R_gps = np.eye(6) * 0.2
+    #R_gps = np.eye(6) * 0.2
+    R_gps = np.diag([
+    0.10, 0.10, 0.10,   # position noise
+    1.0, 1.0, 1.0    # velocity noise
+    ])
     R_baro = np.eye(1) * 0.05
     ekf = EKF(x0, P0, Q, R_gps, R_baro, params)
 
-    gps = GPSSensor(pos_sigma=0.3,vel_sigma=0.3,rate_hz=10.0)
+    gps = GPSSensor(pos_sigma=0.1,vel_sigma=0.1,rate_hz=20.0)
     baro = BarometerSensor(z_sigma=0.2,rate_hz=20.0)
     imu = IMUSensor(
         accel_sigma=0.03,
@@ -152,16 +201,27 @@ def main():
     )
 
     # Reference
-    ref = {"p": np.array([5.0, 0.0, -3.0]), "yaw": 0.0}
+    ref = {"p": np.array([5.0, 0.0, -3.0]), "v": np.array([0.0, 0.0, 0.0]), "yaw": 0.0}
 
-    wind_w = np.array([2.0, 0.0, 0.0])
+    wind_w = np.array([0.0, 0.0, 0.0])
+
+    u_prev = np.array([params["m"] * params["g"], 0.0, 0.0, 0.0])
 
     for k in range(steps):
         t = k * dt
 
         x_ctrl = x.copy()
         x_ctrl[0:6] = ekf.x[0:6] #use estimated position and velocity only
-        u = ctrl.step(x_ctrl, ref, dt, quat_to_R)
+        u_cmd = ctrl.step(x_ctrl, ref, dt, quat_to_R)
+        u = rate_limit(
+            u_cmd,
+            u_prev,
+            dt,
+            thrust_rate_lim=80.0,
+            torque_rate_lim=np.array([0.8, 0.8, 0.3]),
+        )
+
+        u_prev = u.copy()
 
         # Save previous truth state for IMU finite-difference acceleration
         x_prev = x.copy()

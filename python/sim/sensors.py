@@ -1,5 +1,6 @@
 import numpy as np
 from .dynamics import quat_to_R
+from .dynamics import quat_norm
 
 class GPSSensor:
     """
@@ -32,6 +33,7 @@ class GPSSensor:
         v_b_true = x_true[3:6]
         q_true = x_true[6:10]
 
+        q_true = quat_norm(q_true)
         R_bw = quat_to_R(q_true)      # body -> world
         v_w_true = R_bw @ v_b_true
 
@@ -115,6 +117,7 @@ class IMUSensor:
 
         # Accelerometer measures specific force:
         # f_b = v_dot_b + w_b x v_b - g_b
+        q_true = quat_norm(q_true)
         R_bw = quat_to_R(q_true)   # body -> world
         g_w = np.array([0.0, 0.0, -self.g])
         g_b = R_bw.T @ g_w
