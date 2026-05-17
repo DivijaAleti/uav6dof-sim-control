@@ -203,7 +203,7 @@ def main():
     # Reference
     ref = {"p": np.array([5.0, 0.0, -3.0]), "v": np.array([0.0, 0.0, 0.0]), "yaw": 0.0}
 
-    wind_w = np.array([0.0, 0.0, 0.0])
+    wind_w = np.array([2.0, 0.0, 0.0])
 
     u_prev = np.array([params["m"] * params["g"], 0.0, 0.0, 0.0])
 
