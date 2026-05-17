@@ -26,36 +26,30 @@ The system integrates **rigid body dynamics**, **state estimation**, and **contr
 - Python vs. C++ controller comparison
 
 ## System Architecture
-
-### Dynamics
-- 13-state nonlinear UAV model:
-- Body-frame dynamics + quaternion attitude
-- Forces: gravity, thrust, quadratic drag
-- Wind modeled in world frame
-
-### Control
-- Cascaded PID:
-- Thrust from vertical control, roll/pitch from lateral control
-- Yaw control loop
-- Uses **EKF-estimated state**
-- Includes saturation + rate limiting
-- Implemented in Python and C++ (pybind11)
-
-### Estimation (EKF)
-- IMU-driven prediction (accelerometer + gyro)
-- Updates:
+- Dynamics:
+  - 13-state nonlinear UAV model:
+  - Body-frame dynamics + quaternion attitude
+  - Forces: gravity, thrust, quadratic drag
+  - Wind modeled in world frame
+- Cascaded PID Control:
+  - Thrust from vertical control, roll/pitch from lateral control
+  - Yaw control loop
+  - Uses **EKF-estimated state**
+  - Includes saturation + rate limiting
+  - Implemented in Python and C++ (pybind11)
+- Estimation (EKF): 
+  - IMU-driven prediction (accelerometer + gyro)
+  - Updates:
     - GPS → position, velocity
     - Barometer → altitude
-- Numerical Jacobian + quaternion normalization
-
-### Sensors
-- IMU, GPS, barometer (noise + different rates)
-
-### Simulation Loop
-- Propagate dynamics → generate sensor data  
-- EKF predict + update  
-- Compute control from estimated state  
-- Apply rate limits and log results
+  - Numerical Jacobian + quaternion normalization
+- Sensors:
+  - IMU, GPS, barometer (noise + different rates)
+- Simulation Loop:
+  - Propagate dynamics → generate sensor data  
+  - EKF predict + update  
+  - Compute control from estimated state  
+  - Apply rate limits and log results
 
 ## Project Structure
 ```
