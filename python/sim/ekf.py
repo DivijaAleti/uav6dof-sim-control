@@ -25,21 +25,7 @@ class EKF:
         self.R_gps = R_gps
         self.R_baro = R_baro
         self.params = params
-    '''
-    def predict(self, u, dt, wind_w):
-        # Nonlinear propagation
-        x_pred = step_6dof(self.x, u, self.params, dt, wind_w=wind_w)
-        # Simple numerical Jacobian
-        def fwrap(xx):
-            xx2 = xx.copy()
-            xx2[6:10] = quat_norm(xx2[6:10])
-            return step_6dof(xx2, u, self.params, dt, wind_w=wind_w)
-
-        F = self._num_jacobian(fwrap, self.x)
-        self.x = x_pred
-        self.x[6:10] = quat_norm(self.x[6:10])
-        self.P = F @ self.P @ F.T + self.Q
-    '''
+        
     def predict(self, accel_meas_b, gyro_meas_b, dt):
         """
         IMU-driven EKF prediction step.

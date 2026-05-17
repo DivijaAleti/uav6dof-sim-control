@@ -181,7 +181,6 @@ def main():
     x0 = x.copy()
     P0 = np.eye(13) * 0.2
     Q = np.eye(13) * 1e-3
-    #R_gps = np.eye(6) * 0.2
     R_gps = np.diag([
     0.10, 0.10, 0.10,   # position noise
     1.0, 1.0, 1.0    # velocity noise
@@ -194,8 +193,8 @@ def main():
     imu = IMUSensor(
         accel_sigma=0.03,
         gyro_sigma=0.003,
-        accel_bias=np.zeros(3), #np.array([0.02,-0.01,0.03]),
-        gyro_bias=np.zeros(3), #np.array([0.002,-0.001,0.0015]),
+        accel_bias=np.zeros(3),
+        gyro_bias=np.zeros(3),
         rate_hz=1.0/dt,
         g=params["g"]
     )
@@ -229,12 +228,6 @@ def main():
         # Propagate truth
         x = step_6dof(x, u, params, dt, wind_w=wind_w)
 
-        # Fake sensors
-        #gps_period = int(0.1/dt)
-        #baro_period = int(0.05/dt)
-
-        # ekf.predict(u, dt, wind_w)
-
         # IMU prediction step
         if imu.ready(t):
             accel_meas_b, gyro_meas_b = imu.measure(x_prev,x,dt,t)
@@ -266,21 +259,6 @@ def main():
         p_ref_hist[k, :] = ref["p"]
 
         u_hist[k, :] = u
-
-
-        '''
-        if k % gps_period == 0:
-            p_meas = x[0:3] + np.random.randn(3)*0.3
-            # world vel from body vel:
-            R = quat_to_R(x[6:10])
-            v_w = R @ x[3:6]
-            v_meas = v_w + np.random.randn(3)*0.3
-            ekf.update_gps(p_meas, v_meas)
-
-        if k % baro_period == 0:
-            z_meas = x[2] + np.random.randn()*0.2
-            ekf.update_baro(z_meas)
-        '''
 
     pos_err = p_est_hist - p_true_hist
     vel_err = v_est_hist - v_true_hist
