@@ -110,21 +110,21 @@ python python/run_sim.py
 ```
 
 ## Example Results
-Python controller output:
-<img width="640" height="480" alt="Python_1" src="https://github.com/user-attachments/assets/0fd17099-481b-4922-b2f2-9a4d356e3526" />
-<img width="640" height="480" alt="Python_2" src="https://github.com/user-attachments/assets/30d5edb9-517f-4601-8d49-fefeb3c386cd" />
-<img width="640" height="480" alt="Python_3" src="https://github.com/user-attachments/assets/4e89cf10-09d5-4d18-8f2a-a2884df3ad39" />
-<img width="640" height="480" alt="Python_4" src="https://github.com/user-attachments/assets/2395b3b6-26c8-46ab-905b-b53d44f24010" />
+Python controller output:<br>
+<img width="80" height="60" alt="Python_1" src="https://github.com/user-attachments/assets/0fd17099-481b-4922-b2f2-9a4d356e3526" />
+<img width="80" height="60" alt="Python_2" src="https://github.com/user-attachments/assets/30d5edb9-517f-4601-8d49-fefeb3c386cd" />
+<img width="80" height="60" alt="Python_3" src="https://github.com/user-attachments/assets/4e89cf10-09d5-4d18-8f2a-a2884df3ad39" />
+<img width="80" height="60" alt="Python_4" src="https://github.com/user-attachments/assets/2395b3b6-26c8-46ab-905b-b53d44f24010" />
 ```
 Final true position: [ 5.559, -0.049, -2.987]
 Final est position : [ 5.523, -0.064, -3.090]
 Final error norm   : 0.11 m
 ```
-C++ controller output:
-<img width="640" height="480" alt="Cpp_1" src="https://github.com/user-attachments/assets/ea72be9c-b452-4ddf-9cf3-b09844795abf" />
-<img width="640" height="480" alt="Cpp_2" src="https://github.com/user-attachments/assets/54fe2c26-7f8b-4236-9356-32010c96f8c9" />
-<img width="640" height="480" alt="Cpp_3" src="https://github.com/user-attachments/assets/875fd027-2f08-4c99-a172-b158fec54304" />
-<img width="640" height="480" alt="Cpp_4" src="https://github.com/user-attachments/assets/2ca4522c-9bfb-4f49-a195-0a4714e1d8c2" />
+C++ controller output:<br>
+<img width="80" height="60" alt="Cpp_1" src="https://github.com/user-attachments/assets/ea72be9c-b452-4ddf-9cf3-b09844795abf" />
+<img width="80" height="60" alt="Cpp_2" src="https://github.com/user-attachments/assets/54fe2c26-7f8b-4236-9356-32010c96f8c9" />
+<img width="80" height="60" alt="Cpp_3" src="https://github.com/user-attachments/assets/875fd027-2f08-4c99-a172-b158fec54304" />
+<img width="80" height="60" alt="Cpp_4" src="https://github.com/user-attachments/assets/2ca4522c-9bfb-4f49-a195-0a4714e1d8c2" />
 ```
 Final true position: [5.503, 0.002, -2.955]
 Final est position : [5.534, 0.003, -3.081]
